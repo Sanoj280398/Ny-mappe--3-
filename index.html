@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Talk Together</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Group chat</p>
+          <h1>Talk Together</h1>
+        </div>
+      </header>
+
+      <div class="join-panel">
+        <input
+          id="nameInput"
+          type="text"
+          maxlength="20"
+          placeholder="Your name"
+          value="Guest"
+        />
+        <input
+          id="roomInput"
+          type="text"
+          maxlength="30"
+          placeholder="Room name"
+          value="general"
+        />
+        <button id="joinButton" class="primary-btn">Join room</button>
+      </div>
+
+      <main id="chat" class="chat" aria-live="polite"></main>
+
+      <form id="composer" class="composer">
+        <input
+          id="messageInput"
+          type="text"
+          maxlength="500"
+          placeholder="Type a message..."
+          aria-label="Message input"
+        />
+        <button type="submit" class="primary-btn">Send</button>
+      </form>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
