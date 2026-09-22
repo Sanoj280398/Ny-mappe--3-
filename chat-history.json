@@ -4,6 +4,11 @@
       "sender": "Alice",
       "text": "hello everyone",
       "time": "22.11"
+    },
+    {
+      "sender": "Charlie",
+      "text": "hi there",
+      "time": "22.34"
     }
   ]
 }

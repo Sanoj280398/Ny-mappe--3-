@@ -7,6 +7,12 @@ const nameInput = document.getElementById("nameInput");
 const roomInput = document.getElementById("roomInput");
 
 let currentRoom = "general";
+let joinedRoom = false;
+const savedName = localStorage.getItem("chatUserName") || "Guest";
+const savedRoom = localStorage.getItem("chatRoom") || "general";
+
+nameInput.value = savedName;
+roomInput.value = savedRoom;
 
 function addMessage(text, sender = "system", meta = "") {
   const message = document.createElement("div");
@@ -30,8 +36,20 @@ function joinRoom() {
   const name = nameInput.value.trim() || "Guest";
   const room = roomInput.value.trim() || "general";
 
+  if (!socket.connected) {
+    return;
+  }
+
+  if (joinedRoom && currentRoom === room && nameInput.value.trim() === name) {
+    return;
+  }
+
   currentRoom = room;
+  localStorage.setItem("chatUserName", name);
+  localStorage.setItem("chatRoom", room);
+
   chat.innerHTML = "";
+  joinedRoom = true;
   socket.emit("join", { name, room });
   messageInput.focus();
 }
@@ -83,6 +101,12 @@ socket.on("message", ({ sender, text, time }) => {
 
 socket.on("system", (message) => {
   addMessage(message, "system");
+});
+
+socket.on("connect", () => {
+  if (savedName || savedRoom) {
+    joinRoom();
+  }
 });
 
 addMessage("Choose a name and join a room to start chatting.", "system");
