@@ -5,14 +5,17 @@ const composer = document.getElementById("composer");
 const messageInput = document.getElementById("messageInput");
 const nameInput = document.getElementById("nameInput");
 const roomInput = document.getElementById("roomInput");
+const passwordInput = document.getElementById("passwordInput");
 
 let currentRoom = "general";
 let joinedRoom = false;
 const savedName = localStorage.getItem("chatUserName") || "Guest";
 const savedRoom = localStorage.getItem("chatRoom") || "general";
+const savedPassword = localStorage.getItem("chatRoomPassword") || "";
 
 nameInput.value = savedName;
 roomInput.value = savedRoom;
+passwordInput.value = savedPassword;
 
 function addMessage(text, sender = "system", meta = "") {
   const message = document.createElement("div");
@@ -35,6 +38,7 @@ function addMessage(text, sender = "system", meta = "") {
 function joinRoom() {
   const name = nameInput.value.trim() || "Guest";
   const room = roomInput.value.trim() || "general";
+  const password = passwordInput.value.trim();
 
   if (!socket.connected) {
     return;
@@ -47,10 +51,11 @@ function joinRoom() {
   currentRoom = room;
   localStorage.setItem("chatUserName", name);
   localStorage.setItem("chatRoom", room);
+  localStorage.setItem("chatRoomPassword", password);
 
   chat.innerHTML = "";
   joinedRoom = true;
-  socket.emit("join", { name, room });
+  socket.emit("join", { name, room, password });
   messageInput.focus();
 }
 
@@ -101,6 +106,11 @@ socket.on("message", ({ sender, text, time }) => {
 
 socket.on("system", (message) => {
   addMessage(message, "system");
+});
+
+socket.on("auth_error", (message) => {
+  addMessage(message, "system");
+  chat.scrollTop = chat.scrollHeight;
 });
 
 socket.on("connect", () => {

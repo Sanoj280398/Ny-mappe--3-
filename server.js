@@ -12,6 +12,7 @@ const PORT = process.env.PORT || 3000;
 const HISTORY_PATH = path.join(__dirname, "chat-history.json");
 
 let roomHistory = {};
+const roomPasswords = {};
 
 function loadHistory() {
   try {
@@ -53,7 +54,7 @@ app.get("/", (req, res) => {
 io.on("connection", (socket) => {
   console.log("A user connected");
 
-  socket.on("join", ({ name, room }) => {
+  socket.on("join", ({ name, room, password }) => {
     const safeName =
       String(name || "Guest")
         .trim()
@@ -62,6 +63,21 @@ io.on("connection", (socket) => {
       String(room || "general")
         .trim()
         .slice(0, 30) || "general";
+    const safePassword = String(password || "").trim();
+    const existingPassword = roomPasswords[safeRoom];
+
+    if (existingPassword && existingPassword !== safePassword) {
+      socket.emit("auth_error", "Wrong password for this room.");
+      return;
+    }
+
+    if (!existingPassword && safePassword) {
+      roomPasswords[safeRoom] = safePassword;
+    }
+
+    if (socket.data.room && socket.data.room !== safeRoom) {
+      socket.leave(socket.data.room);
+    }
 
     socket.data.name = safeName;
     socket.data.room = safeRoom;
