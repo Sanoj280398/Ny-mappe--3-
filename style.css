@@ -79,9 +79,34 @@ h1 {
 .join-panel input {
   flex: 1 1 180px;
 }
+
+.private-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+}
+
+.private-toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+}
+
 #passwordInput {
   flex: 1 1 200px;
 }
+
+.hidden {
+  display: none;
+}
+
 .primary-btn {
   border: none;
   background: linear-gradient(135deg, var(--primary), var(--primary-strong));

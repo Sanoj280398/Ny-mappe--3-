@@ -30,11 +30,18 @@
           placeholder="Room name"
           value="general"
         />
+
+        <label class="private-toggle" for="privateRoomToggle">
+          <input id="privateRoomToggle" type="checkbox" />
+          <span>Private room</span>
+        </label>
+
         <input
           id="passwordInput"
           type="password"
           maxlength="30"
-          placeholder="Room password (optional)"
+          placeholder="Room password"
+          class="hidden"
         />
         <button id="joinButton" class="primary-btn">Join room</button>
       </div>

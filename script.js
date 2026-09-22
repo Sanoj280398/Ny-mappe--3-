@@ -6,16 +6,20 @@ const messageInput = document.getElementById("messageInput");
 const nameInput = document.getElementById("nameInput");
 const roomInput = document.getElementById("roomInput");
 const passwordInput = document.getElementById("passwordInput");
+const privateRoomToggle = document.getElementById("privateRoomToggle");
 
 let currentRoom = "general";
 let joinedRoom = false;
 const savedName = localStorage.getItem("chatUserName") || "Guest";
 const savedRoom = localStorage.getItem("chatRoom") || "general";
-const savedPassword = localStorage.getItem("chatRoomPassword") || "";
+const savedPassword = "";
+const savedPrivateRoom = localStorage.getItem("chatPrivateRoom") === "true";
 
 nameInput.value = savedName;
 roomInput.value = savedRoom;
 passwordInput.value = savedPassword;
+privateRoomToggle.checked = savedPrivateRoom;
+passwordInput.classList.toggle("hidden", !privateRoomToggle.checked);
 
 function addMessage(text, sender = "system", meta = "") {
   const message = document.createElement("div");
@@ -35,10 +39,19 @@ function addMessage(text, sender = "system", meta = "") {
   chat.scrollTop = chat.scrollHeight;
 }
 
+function updatePasswordVisibility() {
+  const enabled = privateRoomToggle.checked;
+  passwordInput.classList.toggle("hidden", !enabled);
+  localStorage.setItem("chatPrivateRoom", String(enabled));
+  if (enabled) {
+    passwordInput.focus();
+  }
+}
+
 function joinRoom() {
   const name = nameInput.value.trim() || "Guest";
   const room = roomInput.value.trim() || "general";
-  const password = passwordInput.value.trim();
+  const password = privateRoomToggle.checked ? passwordInput.value.trim() : "";
 
   if (!socket.connected) {
     return;
@@ -51,7 +64,17 @@ function joinRoom() {
   currentRoom = room;
   localStorage.setItem("chatUserName", name);
   localStorage.setItem("chatRoom", room);
-  localStorage.setItem("chatRoomPassword", password);
+  localStorage.setItem("chatPrivateRoom", String(privateRoomToggle.checked));
+
+  if (privateRoomToggle.checked) {
+    localStorage.setItem("chatRoomPassword", passwordInput.value.trim());
+  } else {
+    localStorage.setItem("chatRoomPassword", "");
+  }
+
+  if (!privateRoomToggle.checked) {
+    passwordInput.value = "";
+  }
 
   chat.innerHTML = "";
   joinedRoom = true;
@@ -60,6 +83,7 @@ function joinRoom() {
 }
 
 joinButton.addEventListener("click", joinRoom);
+privateRoomToggle.addEventListener("change", updatePasswordVisibility);
 
 roomInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
