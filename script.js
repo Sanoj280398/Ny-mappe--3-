@@ -31,8 +31,8 @@ function joinRoom() {
   const room = roomInput.value.trim() || "general";
 
   currentRoom = room;
+  chat.innerHTML = "";
   socket.emit("join", { name, room });
-  addMessage(`You joined room "${room}".`, "system");
   messageInput.focus();
 }
 
@@ -59,12 +59,26 @@ composer.addEventListener("submit", (event) => {
   }
 
   socket.emit("message", { room: currentRoom, text });
-  addMessage(text, "user", "You");
   messageInput.value = "";
 });
 
+socket.on("history", (entries) => {
+  chat.innerHTML = "";
+
+  entries.forEach((entry) => {
+    const senderName = entry.sender || "Guest";
+    const isUser = senderName === (nameInput.value.trim() || "Guest");
+    addMessage(
+      entry.text,
+      isUser ? "user" : "bot",
+      `${senderName} • ${entry.time}`,
+    );
+  });
+});
+
 socket.on("message", ({ sender, text, time }) => {
-  addMessage(text, "bot", `${sender} • ${time}`);
+  const isUser = sender === (nameInput.value.trim() || "Guest");
+  addMessage(text, isUser ? "user" : "bot", `${sender} • ${time}`);
 });
 
 socket.on("system", (message) => {

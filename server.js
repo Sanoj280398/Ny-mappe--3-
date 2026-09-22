@@ -1,6 +1,7 @@
 const express = require("express");
 const http = require("http");
 const path = require("path");
+const fs = require("fs");
 const { Server } = require("socket.io");
 
 const app = express();
@@ -8,6 +9,40 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
+const HISTORY_PATH = path.join(__dirname, "chat-history.json");
+
+let roomHistory = {};
+
+function loadHistory() {
+  try {
+    const file = fs.readFileSync(HISTORY_PATH, "utf8");
+    const parsed = JSON.parse(file);
+    roomHistory = parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    roomHistory = {};
+  }
+}
+
+function saveHistory() {
+  fs.writeFileSync(HISTORY_PATH, JSON.stringify(roomHistory, null, 2));
+}
+
+function getRoomHistory(room) {
+  const roomMessages = roomHistory[room] || [];
+  return roomMessages.slice(-100);
+}
+
+function addRoomMessage(room, message) {
+  const roomMessages = roomHistory[room] || [];
+  roomMessages.push(message);
+  if (roomMessages.length > 200) {
+    roomMessages.shift();
+  }
+  roomHistory[room] = roomMessages;
+  saveHistory();
+}
+
+loadHistory();
 
 app.use(express.static(path.join(__dirname)));
 
@@ -32,6 +67,7 @@ io.on("connection", (socket) => {
     socket.data.room = safeRoom;
 
     socket.join(safeRoom);
+    socket.emit("history", getRoomHistory(safeRoom));
     socket.emit("system", `You joined room "${safeRoom}".`);
     socket.to(safeRoom).emit("system", `${safeName} joined the chat.`);
   });
@@ -44,14 +80,17 @@ io.on("connection", (socket) => {
       return;
     }
 
-    io.to(safeRoom).emit("message", {
+    const message = {
       sender: socket.data.name || "Guest",
       text: safeText,
       time: new Date().toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
       }),
-    });
+    };
+
+    addRoomMessage(safeRoom, message);
+    io.to(safeRoom).emit("message", message);
   });
 
   socket.on("disconnect", () => {
